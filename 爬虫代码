@@ -1,0 +1,55 @@
+import time
+import json
+import random
+import requests
+
+
+
+def automateSpider():
+    with open("网址结果.txt", "r+",encoding = "UTF-8") as read:#使用eval函数将字符串转换为字典
+        d = read.readlines()
+        for data in d:
+            try:
+                da = eval(data)
+                for page in range(500):
+
+                    time.sleep(random.random() * 3)
+                    u = da["url"].replace('\n', '')
+                    """:param page:评论页面"""
+                    url = u % page
+                    kv = {'User-Agent': 'Mozilla/5.0', 'Referer': 'https://www.bilibili.com/bangumi/play/ss32638'}
+                    try:
+                        r = requests.get(url, headers=kv)
+                        r.raise_for_status()
+
+                    except:
+
+                        print("失败")
+
+                    r_json_str = r.text[int(da["number"]):-1]  # 范围是callbackjQuery的长度
+                    r_json_obj = json.loads(r_json_str)  # 转换成json类型
+                    r_replies = r_json_obj['data']['replies']
+                    replies = {"text": "", "点赞数": "", "ctime": ""}
+
+                    for r_comment in r_replies:  # 将评论写到txt中
+
+                        a = r_comment['content']['message']
+                        replies["text"] = a
+                        replies["点赞数"] = r_comment['like']
+                        replies["ctime"] = r_comment['ctime']
+                        print(replies)
+                        title = da["title"].replace('\n', '') + '.txt'
+                        with open(str(title), 'a+', encoding="utf-8") as file:
+                            file.write(str(replies) + '\n')
+
+            except  Exception as e:
+                pass
+            continue
+
+
+
+
+
+
+if __name__ == '__main__':
+    automateSpider()
